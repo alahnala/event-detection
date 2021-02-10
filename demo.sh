@@ -1,4 +1,4 @@
-experimentOneParsable="results/parseable.txt";
+experimentOneParsable="results/allie_parseable.txt";
 timestamp() {
   date +"%X"
 }
@@ -53,7 +53,7 @@ ToPMinePhraseSize="5"; # paper = 5
 FPGrowthMinSupport="1"; # paper = 8
 slidingWindowTimesteps="12"; # paper = unknown
 # if slidingWindowTimesteps="6" theta = 2, 12->3
-Theta="3"; # paper = 3, minimum threshold.
+Theta="1"; # paper = 3, minimum threshold.
 Omega="0.001"; # paper = 0.1. this is the dampening coefficient.
 Beta=".0005"; # paper = .05 this is minumum threshold
 Chi=".005"; # paper = .5 minimum threshold.
@@ -62,8 +62,8 @@ dampeningCoefficient="n/a"; #todo remove
 StartingTimeStep="0"; 
 ToPMinenumTopics="1"; 
 TimestepsInTau="24hr"; 
-Alpha="2"; #paper = 10, high alpha threshold in peak detection 
-topminealpha="10"; #not sure what to put here
+Alpha="10"; #paper = 10, high alpha threshold in peak detection 
+topminealpha="2"; #not sure what to put here
 stopwordsFile="0"; # 2 is the nltk stopwords. 0 is all, 1 is topmine.
 
 # Experiment Header

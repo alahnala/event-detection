@@ -13,7 +13,9 @@
   
   I think demo.sh is fairly readable, the parameters are set starting in line 55, so you can play around the parameters if you're curious! 
   
-  But if you just want to see some even detection output it looks like making ToPMineMinSupport="5", ToPMinePhraseSize="5", and topminealpha="2" will give a handful of meaningful results on this dataset. I've attached a demo.sh with these modified parameters for you here if you like. Again I am so sorry about the makefile and the parameters not being set to output an event result! 
+  But if you just want to see some even detection output it looks like making ToPMineMinSupport="5", ToPMinePhraseSize="5", and topminealpha="2" will give a handful of meaningful results on this dataset. 
+  
+  I've attached a demo.sh with these modified parameters for you here if you like. Again I am so sorry about the makefile and the parameters not being set to output an event result! 
 
 
 #### extract high frequency phrases from tweets
