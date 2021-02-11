@@ -1,0 +1,14 @@
+python src/divide_folder.py sample_dataset/ 5 # divides tweet folder into 5 subfolders
+python src/parallel_topmine.py sample_dataset/0/ 5 1 5 2 sample_dataset/ 0 # runs topmine
+python src/parallel_topmine.py sample_dataset/2/ 5 1 5 2 sample_dataset/ 0 # runs topmine
+python src/parallel_topmine.py sample_dataset/3/ 5 1 5 2 sample_dataset/ 0 # runs topmine
+python src/parallel_topmine.py sample_dataset/4/ 5 1 5 2 sample_dataset/ 0 # runs topmine
+python src/parallel_topmine.py sample_dataset/1/ 5 1 5 2 sample_dataset/ 0 # runs topmine
+python src/parallel_fp_growth.py sample_dataset/0/ 1
+python src/parallel_fp_growth.py sample_dataset/1/ 1
+python src/parallel_fp_growth.py sample_dataset/2/ 1
+python src/parallel_fp_growth.py sample_dataset/3/ 1
+python src/parallel_fp_growth.py sample_dataset/4/ 1
+python src/join_folders.py sample_dataset/
+python src/event_candidates.py sample_dataset/
+05:55:32 PM: python src/peak_detection_2.py sample_dataset/ 12 n/a 1 0 10 .0005 .005

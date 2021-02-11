@@ -1,3 +1,5 @@
+mkdir -p logs;
+mkdir -p results;
 timestamp() {
   date +"%X"
 }
@@ -48,59 +50,57 @@ StopWords="${18}";
 ScaleReportLog="${19}"
 
 
-mkdir -p "topmine-master/${tweetFolder}" 
-mkdir -p "topmine-master/${tweetFolder}output/"
-mkdir -p "topmine-master/${tweetFolder}intermediate_output/"
-if grep -Fxq "topmine-master/${tweetFolder}" .gitignore
+mkdir -p "src/topmine/${tweetFolder}" 
+mkdir -p "src/topmine/${tweetFolder}output/"
+mkdir -p "src/topmine/${tweetFolder}intermediate_output/"
+if grep -Fxq "src/topmine/${tweetFolder}" .gitignore
 then
 	# don't need to add it to .gitignore
 	:
 else
 	#add the prepared folder to gitignore so we don't accidentally add or overwrite the folder
-	echo "topmine-master/${tweetFolder}" >> .gitignore 
+	echo "src/topmine/${tweetFolder}" >> .gitignore 
 fi
 
 
 
 
-mkdir -p "graphs/${tweetFolder}";
+# mkdir -p "graphs/${tweetFolder}";
 
-rm -f demo_results/frequent_phrases.count; # remove if it already exists so we can get a clean count
-frequentPhrases="demo_results/frequent_phrases.count";
-rm -f demo_results/num_edges.count; # remove if it already exists so we can get a clean count
-numEdges="demo_results/num_edges.count";
+rm -f results/frequent_phrases.count; # remove if it already exists so we can get a clean count
+frequentPhrases="results/frequent_phrases.count";
+rm -f results/num_edges.count; # remove if it already exists so we can get a clean count
+numEdges="results/num_edges.count";
 
 function process_subfolder () {
 	data=$1
-	log_progress "\e[104m$(timestamp): python parallel_topmine.py $data $ToPMineMinSupport $ToPMinenumTopics $ToPMinePhraseSize $TopMineAlpha $tweetFolder $StopWords\e[0m" ${logfile}
-	FREQ_PHRASES="$(python parallel_topmine.py $data $ToPMineMinSupport $ToPMinenumTopics $ToPMinePhraseSize $TopMineAlpha $tweetFolder $StopWords)" #run topmine
-	echo "done topmine $data"
+	log_progress "$(timestamp): python src/parallel_topmine.py $data $ToPMineMinSupport $ToPMinenumTopics $ToPMinePhraseSize $TopMineAlpha $tweetFolder $StopWords" ${logfile}
+	FREQ_PHRASES="$(python src/parallel_topmine.py $data $ToPMineMinSupport $ToPMinenumTopics $ToPMinePhraseSize $TopMineAlpha $tweetFolder $StopWords)" #run topmine
+	# echo "done topmine $data"
 	echo "${FREQ_PHRASES}" >> $frequentPhrases
-	echo "starting fpgrowth $data"
+	# echo "starting fpgrowth $data"
 
 	
-	log_progress "\e[104m$(timestamp): python parallel_fp_growth.py $data $FPGrowthMinSupport\e[0m" $logfile 
-	NUM_EDGES="$(python parallel_fp_growth.py $data $FPGrowthMinSupport)" #run fp_growth to find high co-occurring phrases and generate graph files
+	log_progress "$(timestamp): python src/parallel_fp_growth.py $data $FPGrowthMinSupport" $logfile 
+	NUM_EDGES="$(python src/parallel_fp_growth.py $data $FPGrowthMinSupport)" #run fp_growth to find high co-occurring phrases and generate graph files
 	echo "${NUM_EDGES}" >> $numEdges
-	echo "mv topmine-master/$2/output/* topmine-master/${tweetFolder}output/"
-	mv topmine-master/$2/output/* topmine-master/${tweetFolder}output/
-	echo "mv topmine-master/$2/intermediate_output/* topmine-master/${tweetFolder}intermediate_output/"
-	mv topmine-master/$2/intermediate_output/* topmine-master/${tweetFolder}intermediate_output/
-	echo "rm -r topmine-master/$2/"
-	rm -r topmine-master/$2/
-	echo "mv graphs/$2/* graphs/$tweetFolder"
-	mv graphs/$2/* graphs/$tweetFolder
-	echo "rm -r graphs/$2/"
-	rm -r graphs/$2/
+	mkdir -p src/topmine/${tweetFolder}output/
+	mv src/topmine/$2/output/* src/topmine/${tweetFolder}output/
+	mkdir -p src/topmine/${tweetFolder}intermediate_output/
+	mv src/topmine/$2/intermediate_output/* src/topmine/${tweetFolder}intermediate_output/
+	rm -r src/topmine/$2/
+	mkdir -p src/graphs/$tweetFolder
+	mv src/graphs/$2/* src/graphs/$tweetFolder
+	rm -r src/graphs/$2/
 }
 
 numThreads="${20}";
-log_progress "\e[104m$(timestamp): python divide_folder.py $datalocation $numThreads\e[0m" $logfile
-OUTPUT="$(python divide_folder.py $datalocation $numThreads)";
+log_progress "$(timestamp): python src/divide_folder.py $datalocation $numThreads" $logfile
+OUTPUT="$(python src/divide_folder.py $datalocation $numThreads)";
 COUNTER=0
 while [  $COUNTER -lt $numThreads ]; do
 	subFolder="$datalocation$COUNTER/"
-	echo running topmine and fpgrowth on $subFolder
+	# echo running topmine and fpgrowth on $subFolder
 
 	# Step 1: Run and log topmine
 
@@ -115,65 +115,59 @@ for pid in ${pids[*]}; do
     wait $pid
 done
 #I want to get the total
-TOTAL_FREQ_PHRASES="$(python sub_counter.py $frequentPhrases)";
-echo -e "\e[1mToPMine frequent phrases:\e[0m ${TOTAL_FREQ_PHRASES}" >> $ScaleReportLog;
-echo -e "\e[1mToPMine frequent phrases:\e[0m ${TOTAL_FREQ_PHRASES}";
-TOTAL_EDGES="$(python sub_counter.py $numEdges)";
-echo -e "\e[1mFPGrowth graph edges:\e[0m ${TOTAL_EDGES}" >> $ScaleReportLog;
-echo -e "\e[1mFPGrowth graph edges:\e[0m ${TOTAL_EDGES}";
-log_progress "\e[92m$(timestamp) Topmine and FPGrowth complete\e[0m" $logfile; 
+TOTAL_FREQ_PHRASES="$(python src/sub_counter.py $frequentPhrases)";
+echo -e "ToPMine frequent phrases: ${TOTAL_FREQ_PHRASES}" >> $ScaleReportLog;
+echo -e "ToPMine frequent phrases: ${TOTAL_FREQ_PHRASES}";
+TOTAL_EDGES="$(python src/sub_counter.py $numEdges)";
+echo -e "FPGrowth graph edges: ${TOTAL_EDGES}" >> $ScaleReportLog;
+echo -e "FPGrowth graph edges: ${TOTAL_EDGES}";
+log_progress "$(timestamp) Topmine and FPGrowth complete" $logfile; 
 log_progress "" $logfile; 
 log_progress "" $logfile; 
 
-OUTPUT="$(python join_folders.py $datalocation)";
-# OUTPUT="$(python parallel_gl_scripts/join_topmine_folders.py $datalocation topmine-src/$tweetFolder/)";
+OUTPUT="$(python src/join_folders.py $datalocation)";
 
 
-if [ -d "event_candidates/${tweetFolder}" ]
+if [ -d "src/event_candidates/${tweetFolder}" ]
 then
-	echo "Clearing out event_candidates/${tweetFolder}"
-    rm -r "event_candidates/${tweetFolder}"
+    rm -r "src/event_candidates/${tweetFolder}"
 else
 	:
 fi
-# create location for event candidates output (graphs for this corpus)
-mkdir -p "event_candidates/${tweetFolder}"; 
-if grep -Fxq "event_candidates/${tweetFolder}" .gitignore;
-then
-	# don't need to add it to .gitignore
-	:
-else
-	#add the prepared folder to gitignore so we don't accidentally add or overwrite the folder
-	echo "event_candidates/${tweetFolder}" >> .gitignore 
-fi
+
 
 
 # Run and log initial event candidates from phrase network
 log_progress "Event candidates. Determines initial candidates with Louvain Community Detection." $logfile;
-log_progress "\e[104m$(timestamp): python event_candidates.py $tweetFolder\e[0m" $logfile;
-OUTPUT="$(python event_candidates.py ${tweetFolder})";
+log_progress "$(timestamp): python src/event_candidates.py $tweetFolder" $logfile;
+OUTPUT="$(python src/event_candidates.py ${tweetFolder})";
 time=$(date)
-echo -e "\e[1mLouvain and merge phrase clusters:\e[0m ${OUTPUT}" >> $ScaleReportLog;
+echo -e "Louvain and merge phrase clusters: ${OUTPUT}" >> $ScaleReportLog;
 # echo "${OUTPUT}," >> $experimentOneParsable;
 log_progress "    Total phrase clusters: ${OUTPUT}" $logfile;
-log_progress "\e[92m$(timestamp) Event candidates complete\e[0m" $logfile; 
+log_progress "$(timestamp) Event candidates complete" $logfile; 
 log_progress "" $logfile; 
 
 
 # ["ToPMine minsupport", "ToPMine n-gram",  "FPgrowth minsupport", "$\\theta$", "$\omega$", "$\\alpha$", "$\\beta$", "$\chi$", "$\\tau"]
 # ["ToPMine \#topics", "$t \in \\tau$"]
 #Log parameters
-PARAMETERS="$(python params_table.py $ToPMineMinSupport $ToPMinePhraseSize  $FPGrowthMinSupport $Theta $Omega $Alpha $Beta $Chi $Tau $ToPMinenumTopics $TopMineAlpha $StopWords)";
+PARAMETERS="$(python src/params_table.py $ToPMineMinSupport $ToPMinePhraseSize  $FPGrowthMinSupport $Theta $Omega $Alpha $Beta $Chi $Tau $ToPMinenumTopics $TopMineAlpha $StopWords)";
 
 
 # Run and log peak detection and event detection
 log_progress "Peak detection. Finds peaks and determines final events by analyzing peaks." $logfile;
-log_progress "\e[104m$(timestamp): python peak_detection_2.py ${tweetFolder} ${slidingWindowTimesteps} ${dampeningCoefficient} ${Theta} ${StartingTimeStep} ${Alpha} ${Beta} ${Chi}\e[0m" $logfile; 
-OUTPUT="$(python peak_detection_2.py ${tweetFolder} ${slidingWindowTimesteps} ${dampeningCoefficient} ${Theta} ${StartingTimeStep} ${Alpha} ${Beta} ${Chi})";
-log_progress "\e[92m$(timestamp) Event detection complete.\e[0m" $logfile;
+log_progress "$(timestamp): python src/peak_detection_2.py ${tweetFolder} ${slidingWindowTimesteps} ${dampeningCoefficient} ${Theta} ${StartingTimeStep} ${Alpha} ${Beta} ${Chi}" $logfile; 
+OUTPUT="$(python src/peak_detection_2.py ${tweetFolder} ${slidingWindowTimesteps} ${dampeningCoefficient} ${Theta} ${StartingTimeStep} ${Alpha} ${Beta} ${Chi})";
+log_progress "$(timestamp) Event detection complete." $logfile;
 
 numEvents="${OUTPUT##*$'\n'}";
-echo -e "\e[1mFinal events:\e[0m $numEvents" >> $ScaleReportLog;
+echo -e "Final events: $numEvents" >> $ScaleReportLog;
+echo "Parameters:" >> $ScaleReportLog;
+echo "$PARAMETERS" >> $ScaleReportLog;
+echo "Events:" >> $ScaleReportLog;
+echo "$OUTPUT" >> $ScaleReportLog;
+
 log_results "Parameters:";
 log_results "$PARAMETERS";
 log_results "";
@@ -181,6 +175,5 @@ log_results "Events:";
 log_results "${OUTPUT}";
 
 
-echo "removing graphs" $logfile;
-rm -r graphs/$tweetFolder;
 
+./clean.sh
