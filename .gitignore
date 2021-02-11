@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 topmine-master/sample_dataset/
 event_candidates/sample_dataset/
+src/topmine/sample_dataset/
